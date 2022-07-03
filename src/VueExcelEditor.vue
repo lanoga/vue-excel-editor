@@ -278,9 +278,9 @@
 <script>
 import Vue from 'vue'
 import VueExcelFilter from './VueExcelFilter.vue'
-import PanelFilter from './PanelFilter.vue'
-import PanelSetting from './PanelSetting.vue'
-import PanelFind from './PanelFind.vue'
+import PanelFilter from './panelFilter.vue'
+import PanelSetting from './panelSetting.vue'
+import PanelFind from './panelFind.vue'
 import DatePicker from 'vue2-datepicker'
 import XLSX from 'xlsx'
 
@@ -1250,6 +1250,14 @@ export default {
     winKeyup (e) {
       if (!e.altKey) this.systable.classList.remove('alt')
     },
+    textToClipboard (text) {
+      let dummy = document.createElement("textarea");
+      document.body.appendChild(dummy);
+      dummy.value = text;
+      dummy.select();
+      document.execCommand("copy");
+      document.body.removeChild(dummy);
+    },
     winKeydown (e) {
       if (e.altKey) this.systable.classList.add('alt')
       if (!this.mousein && !this.focused) return
@@ -1264,10 +1272,21 @@ export default {
             e.preventDefault()
             break
           case 67: // c
-            this.inputBox.value = this.currentCell.textContent
-            this.inputBox.focus()
-            this.inputBox.select()
-            document.execCommand('copy')
+            if(this.getSelectedRecords().length > 0){ 
+              //if any row is selected
+              const rows = this.getSelectedRecords().slice()
+              const rowStrings = []
+              for(let i in rows) {
+                const cells = Object.values(rows[i])
+                rowStrings.push(cells.join('\t') + '\n')
+              }   
+              this.textToClipboard(rowStrings.join(''))
+            } else {
+              this.inputBox.value = this.currentCell.textContent
+              this.inputBox.focus()
+              this.inputBox.select()
+              document.execCommand('copy')
+            }
             e.preventDefault()
             break
           case 70: // f
