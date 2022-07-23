@@ -54,8 +54,19 @@ export default {
   },
   watch: {
     value (newVal) {
+      let temp = newVal.slice(1)
+      let filters = ""
+      try {
+        filters = JSON.parse(temp)
+        filters = '=' + filters.filter.join(',')
+      } catch(err){
+        filters = newVal
+      }
+
+      
+
       if (newVal !== this.$el.textContent)
-        this.$refs.cell.textContent = newVal
+        this.$refs.cell.textContent = filters
     }
   },
   mounted () {

@@ -794,7 +794,7 @@ export default {
                 const pureFilters = filters.filter.map((filter)=>filter.trim().toUpperCase())
                 filter[k] = {type: 0, value: pureFilters}
               } else {
-                filter[k] = {type: 0, value: filters.trim().toUpperCase()}
+                filter[k] = {type: 0, value: this.columnFilter[k].slice(1).trim().toUpperCase()}
               }
               break
             case this.columnFilter[k].startsWith('*') && this.columnFilter[k].endsWith('*'):
