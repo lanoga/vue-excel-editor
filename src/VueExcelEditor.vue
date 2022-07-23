@@ -780,8 +780,22 @@ export default {
               filter[k] = {type: 4, value: this.columnFilter[k].slice(1).trim().toUpperCase()}
               if (this.fields[k].type === 'number') filter[k].value = Number(filter[k].value)
               break
-            case this.columnFilter[k].startsWith('='):
-              filter[k] = {type: 0, value: this.columnFilter[k].slice(1).trim().toUpperCase()}
+            case this.columnFilter[k].startsWith('='): 
+              let temp = this.columnFilter[k].slice(1)
+            
+              let filters = ""
+              try {
+                filters = JSON.parse(temp)
+              } catch(err){
+                filters = temp
+              }
+        
+              if(typeof filters === 'object'){
+                const pureFilters = filters.filter.map((filter)=>filter.trim().toUpperCase())
+                filter[k] = {type: 0, value: pureFilters}
+              } else {
+                filter[k] = {type: 0, value: filters.trim().toUpperCase()}
+              }
               break
             case this.columnFilter[k].startsWith('*') && this.columnFilter[k].endsWith('*'):
               filter[k] = {type: 5, value: this.columnFilter[k].slice(1).slice(0, -1).trim().toUpperCase()}
@@ -804,6 +818,7 @@ export default {
           }
         })
         this.filteredValue = this.value.filter(record => this.recordFilter(record))
+        //if no filter is active
         if (filterColumnList.length === 0)
           this.table = this.filteredValue
         else {
@@ -821,9 +836,10 @@ export default {
             */
 
             const content = {}
+            
             filterColumnList.forEach((k) => {
-              const val = record[this.fields[k].name]
-              if (this.fields[k].type === 'number' && filter[k].type <= 4)
+              const val = record[this.fields[k].name]            
+              if (this.fields[k].type === 'number' && filter[k].type <= 4)            
                 content[k] = val
               else
                 content[k] = typeof val === 'undefined' || val === null ? '' : String(val).toUpperCase()
@@ -831,9 +847,17 @@ export default {
 
             for (let i = 0; i < filterColumnList.length; i++) {
               const k = filterColumnList[i]
-              switch (filter[k].type) {
-                case 0:
-                  if (`${content[k]}` !== `${filter[k].value}`) return false
+              switch (filter[k].type) {       
+                case 0: //when checkbox is checked
+                  console.log(filter[k]);
+                  if(Array.isArray(filter[k].value)) {
+                    const multipleFilterValues = filter[k].value.slice()
+                             
+                    return multipleFilterValues.some((filterValue)=> content[k] === filterValue)
+                  
+                  } else {
+                    if (`${content[k]}` !== `${filter[k].value}`) return false
+                  }    
                   break
                 case 1:
                   if (filter[k].value < content[k]) return false
@@ -868,7 +892,6 @@ export default {
           })
         }
       }
-
       this.reviseSelectedAfterTableChange()
       if (this.showSelectedOnly) {
         this.table = this.table.filter((rec, i) => this.selected[i])
@@ -972,6 +995,7 @@ export default {
         if (field.type === 'number' && isNaN(result)) return
         this.summary[i] = field.toText(result)
       })
+      
     },
     getKeys (rec) {
       if (!rec) rec = this.currentRecord

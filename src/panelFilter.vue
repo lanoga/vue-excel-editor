@@ -61,8 +61,8 @@
           <div ref="panelList" class="panel-list">
             <div v-for="(item, k) in filteredSortedUniqueValueList.slice(0, nFilterCount)" :key="k"
                  class="panel-list-item"
-                 @click.prevent="filterPanelSelect(item)">
-              <input type="checkbox" class="panel-checkbox" />
+                 @click="filterPanelSelect(item)">
+              <input type="checkbox" class="panel-checkbox" :checked="selectedFilters.includes(item)"/>
               <span>{{ item }}</span>
             </div>
           </div>
@@ -110,6 +110,7 @@ export default {
   },
   data () {
     return {
+      selectedFilters: [],
       show: false,
       showDropdown: false,
       processing: false,
@@ -169,15 +170,42 @@ export default {
     },
     doFilter () {
       const opt = this.inputFilterCondition + this.$refs.inputFilter.value
-      this.columnFilterRef.$el.textContent = opt
-      this.columnFilterRef.$emit('input', opt)
+
+      if(!opt){
+        if(this.selectedFilters.length === 1) {
+          this.columnFilterRef.$emit('input', '=' + `${this.selectedFilters[0]}`)     
+        } else if (this.selectedFilters.length > 1) {
+
+           const fitlerObj = {
+            filter: this.selectedFilters,
+            multipleSelect: true
+           }
+          this.columnFilterRef.$el.textContent = this.selectedFilters.length ? '=' + `${this.selectedFilters}` : ''
+
+          this.columnFilterRef.$emit('input', '=' + JSON.stringify(fitlerObj))
+        
+        } else {
+          
+          this.columnFilterRef.$el.textContent = opt
+          this.columnFilterRef.$emit('input', opt)
+        }
+      } else {
+        this.columnFilterRef.$el.textContent = opt
+        this.columnFilterRef.$emit('input', opt)
+      }
       this.hidePanel()
     },
     filterPanelSelect (opt) {
+      if(!this.selectedFilters.includes(opt)) {
+        this.selectedFilters.push(opt)
+      } else {
+        const index = this.selectedFilters.indexOf(opt);
+        this.selectedFilters.splice(index, 1)
+      }
       // this.columnFilter[this.columnFilterRef.colPos] = el  // Cannot use this, dunno why
-      this.columnFilterRef.$el.textContent = '=' + opt
-      this.columnFilterRef.$emit('input', '=' + opt)
-      this.hidePanel()
+      this.columnFilterRef.$el.textContent = this.selectedFilters.length ? '=' + `${this.selectedFilters}` : ''
+      //this.columnFilterRef.$emit('input', '=' + opt)
+      //this.hidePanel()
     },
     showPanel (ref) {
       this.columnFilterRef = ref
@@ -189,6 +217,8 @@ export default {
         this.columnFilterRef.$el.textContent = ''
         this.columnFilterRef.$emit('input', '')
         this.$parent.calTable()
+      } else {
+        this.selectedFilters = []
       }
       setTimeout(() => {
         this.show = true
