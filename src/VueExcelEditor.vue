@@ -790,7 +790,7 @@ export default {
                 filters = temp
               }
         
-              if(typeof filters === 'object'){
+              if(typeof filters === 'object' && filters.multipleSelect){
                 const pureFilters = filters.filter.map((filter)=>filter.trim().toUpperCase())
                 filter[k] = {type: 0, value: pureFilters}
               } else {
@@ -849,7 +849,7 @@ export default {
               const k = filterColumnList[i]
               switch (filter[k].type) {       
                 case 0: //when checkbox is checked
-                  console.log(filter[k]);
+
                   if(Array.isArray(filter[k].value)) {
                     const multipleFilterValues = filter[k].value.slice()
                              
